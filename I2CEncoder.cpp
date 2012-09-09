@@ -7,6 +7,9 @@ unsigned char I2CEncoder::nextAddress = I2CENCODER_STARTING_ADDRESS;
 I2CEncoder* I2CEncoder::lastEncoder = NULL;
 
 // CONSTRUCTOR
+/**
+ * Create the encoder with it's automatically assigned address.
+ */
 I2CEncoder::I2CEncoder() {
   // TODO: Handle last encoder nicely:  lastEncoder = this;
   address = nextAddress;
@@ -29,7 +32,7 @@ void I2CEncoder::init() {
   // Assign it's address
   Wire.beginTransmission(I2CENCODER_DEFAULT_ADDRESS);
   Wire.write(I2CENCODER_ADDRESS_REGISTER);
-  Wire.write(address << 1);
+  Wire.write(address << 1); // Shift to an 8-bit address for the encoder.
   Wire.endTransmission();
 
   // Zero it on initialization
@@ -37,12 +40,15 @@ void I2CEncoder::init() {
 }
 
 /**
- * Sets whether or not the encoder is setup "backwards".
+ * Sets whether or not the encoder is setup "backwards" or flipped.
  */
 void I2CEncoder::setReversed(bool is_reversed) {
   this->is_reversed = is_reversed;
 }
 
+/**
+ * Return true for forward and false for reverse.
+ */
 bool I2CEncoder::getDirection() {
   accessRegister(0x3E);
   Wire.requestFrom(address, 1);
@@ -51,7 +57,8 @@ bool I2CEncoder::getDirection() {
 }
 
 /**
- * Returns the speed of rotation of the encoder
+ * Returns the speed of the encoder rotation per minute for the output
+ * shaft of the motor. (Assumes 269)
  */
 double I2CEncoder::getSpeed() {
   // TODO: Check sanity of the values
@@ -63,7 +70,8 @@ double I2CEncoder::getSpeed() {
 
 /**
  * Returns the unsigned velocity bits. This is the time-delta between
- * ticks in multiples of 64 microseconds/tick.
+ * ticks in multiples of 64 microseconds/tick. Stopped is 0xFFFF or 4
+ * seconds. (Assumes 269)
  */
 unsigned int I2CEncoder::getVelocityBits() {
   accessRegister(I2CENCODER_VELOCITY_REGISTER);
@@ -76,7 +84,7 @@ unsigned int I2CEncoder::getVelocityBits() {
 }
 
 /**
- * Returns the position in encoder ticks since power on.
+ * Returns the position in encoder ticks since power on or last reset.
  */
 long I2CEncoder::getPosition() {
   // TODO: Deal with the two extra bytes
@@ -92,18 +100,32 @@ long I2CEncoder::getPosition() {
   return is_reversed ? -position : position;
 }
 
+/**
+ * Zero the position of this encoder.
+ */
 void I2CEncoder::zero() {
   accessRegister(I2CENCODER_ZERO_REGISTER);
 }
 
+/**
+ * UnTerminate this encoder. This allows access to all I2C devices
+ * after this encoder.
+ */
 void I2CEncoder::unTerminate() {
   accessRegister(I2CENCODER_UNTERMINATE_REGISTER);
 }
 
+/**
+ * Terminate this encoder. This prevents access to all I2C devices
+ * after this encoder.
+ */
 void I2CEncoder::terminate() {
   accessRegister(I2CENCODER_TERMINATE_REGISTER);
 }
 
+/**
+ * Gets the I2C Address of this encoder for manual access.
+ */
 unsigned char I2CEncoder::getAddress() {
   return address;
 }
