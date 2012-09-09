@@ -1,0 +1,10 @@
+
+* Introduction
+This library uses the Wire library for I2C to talk to the Vex
+Integrated encoders.
+
+* Resources
+- [[http://www.vexforum.com/showthread.php?p=255691][Spec]]
+- [[http://www.vexforum.com/wiki/index.php/Intergrated_Motor_Encoders][Wiki]]
+- [[http://www.vexforum.com/showthread.php?p=281977][VexForum Post]]
+- [[http://www.arduino.cc/en/Reference/Wire][Wire Library]]
