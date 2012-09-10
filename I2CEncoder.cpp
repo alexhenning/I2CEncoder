@@ -13,7 +13,6 @@ I2CEncoder* I2CEncoder::lastEncoder = NULL;
  * Create the encoder with it's automatically assigned address.
  */
 I2CEncoder::I2CEncoder() {
-  // TODO: Handle last encoder nicely:  lastEncoder = this;
   address = nextAddress;
   nextAddress++;
   is_reversed = false;
