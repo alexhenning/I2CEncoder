@@ -1,7 +1,52 @@
 
 * Introduction
 This library uses the Wire library for I2C to talk to the Vex
-Integrated encoders.
+Integrated encoders. It currently assumes that you are using a 269
+motor, 
+
+* How to use it
+** Initializing
+The order you initialize encoders is very important! First, the wire
+library must be started by calling =Wire.begin()=, then you must call
+the =init()= method *in the order they are chained together.* The one
+plugged into the arduino first, then the one plugged into that and so
+on until the last one.
+#+BEGIN_SRC c++
+  I2CEncoder encoder;
+  Wire.begin();
+  encoder1.init();
+#+END_SRC
+
+** Getting Direction
+*Warning:* Currently unreliable. Still a work in progress. Use with
+extreme care.
+#+BEGIN_SRC c++
+  encoder.getDirection();
+#+END_SRC
+
+** Getting Speed
+Returns the unsigned RPM of the output shaft of the motor. Assumes
+default gearing. Unfortunately, due to the implementation of the
+encoders it takes 4 seconds to get 0 when stopped. The speed gradually
+gets closer and closer to 0 over the course of those 4 seconds.
+#+BEGIN_SRC c++
+  encoder.getSpeed();
+#+END_SRC
+
+** Getting Position
+Returns the signed position as a long. It currently only uses 4 of the
+6 bytes of accuracy and returns the ticks since power on or 0.
+#+BEGIN_SRC c++
+  encoder.getPosition()
+#+END_SRC
+
+** Zeroing Position
+Sets the position to 0 on this encoder.
+#+BEGIN_SRC c++
+  encoder.zero();
+#+END_SRC
+
+* How it works
 
 * Resources
 - [[http://www.vexforum.com/showthread.php?p=255691][Spec]]
