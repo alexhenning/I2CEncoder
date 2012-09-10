@@ -1,5 +1,7 @@
 
 #include "Wire.h"
+#include "Arduino.h"
+
 #include "I2CEncoder.h"
 
 // INITIALIZE
@@ -47,13 +49,17 @@ void I2CEncoder::setReversed(bool is_reversed) {
 }
 
 /**
- * Return true for forward and false for reverse.
+ * Return true for forward and false for reverse. Stopped is always
+ * considered forwards.
  */
 bool I2CEncoder::getDirection() {
-  accessRegister(0x3E);
-  Wire.requestFrom(address, 1);
-  return (bool) (Wire.read() >> 7);
-  // TODO: Implement. Should handle reversed
+  // TODO: Fix. The delay is a terrible way. It messes up on slow
+  // reverse and makes checking direction expensive!
+  long p1 = getPosition();
+  delayMicroseconds(4000);
+  long delta = getPosition() - p1;
+  bool direction = delta < 0;;
+  return is_reversed ? !direction : direction; 
 }
 
 /**
