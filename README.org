@@ -1,8 +1,10 @@
 
 * Introduction
 This library uses the Wire library for I2C to talk to the Vex
-Integrated encoders. It currently assumes that you are using a 269
-motor, though further support is coming soon.
+Integrated encoders. It provides a very simple interface to get the
+speed and position of the encoder. It currently assumes that you are
+using a 269 motor. However, I'm hoping to add further flexibility
+soon.
 
 * How to Use
 ** Installation
@@ -11,8 +13,11 @@ directory. This location depends on where you installed the Arduino
 software. For more instructions, check out the [[http://arduino.cc/en/Hacking/Libraries][Arduino Website]].
 
 ** Wiring
-The wire for the encoder is setup as follows:
-| Lines        | GND   | V   | SCL        | SDA        |
+The following table shows where the VEX Encoder wires should hook up
+on either an Arduino Uno or an Arduino Mega for the GND, Voltage,
+Clock and Data lines.
+
+|              | GND   | V   | SCL        | SDA        |
 |--------------+-------+-----+------------+------------|
 | Wire         | Black | Red |            |            |
 | Arduino Uno  | GND   | V   | Analog 5   | Analog 4   |
@@ -27,11 +32,11 @@ Library[4] and this library (I2CEncoder).
 #+END_SRC
 
 ** Initializing
-The order you initialize encoders is very important! First, the wire
-library must be started by calling =Wire.begin()=, then you must call
-the =init()= method *in the order they are chained together.* The one
-plugged into the Arduino first, then the one plugged into that and so
-on until the last one.
+The order in which you initialize the encoders is very important!
+First, the wire library must be started by calling =Wire.begin()=,
+then you must call the =init()= of each encoder method *in the order
+that they are chained together.* The one plugged into the Arduino
+first, then the one plugged into that and so on until the last encoder.
 #+BEGIN_SRC c++
   I2CEncoder encoder;
   Wire.begin();
@@ -40,7 +45,7 @@ on until the last one.
 
 ** Getting Direction
 *Warning:* Currently unreliable. Still a work in progress. Use with
-extreme care.
+extreme caution.
 #+BEGIN_SRC c++
   encoder.getDirection();
 #+END_SRC
@@ -69,23 +74,31 @@ Sets the position to 0 on this encoder.
 
 * How the VEX Encoders Work
 This section describes how VEX Encoder I2C protocol works with respect
-to Arduino, not how I2C works. If you want to know how I2C itself
-works, there are plenty of other good guides. The code uses the Wire
-library[4] that comes with Arduino to implement I2C.
+to Arduino. It does not describe how I2C works. If you want to know
+how I2C itself works, there are plenty of other good guides. It also
+does not go into detail on the register addresses and other
+information that can be found in spec[1]. Instead, it highlights the
+interesting mis-matches between the VEX Encoder I2C and I2C as
+implemented by the Arduino Wire library[4]. It also goes into further
+detail on termination and initialization.
 
 ** Addresses
-Standard I2C libraries are 7 bit addresses that get bit-shifted to the
-left. The eighth bit then indicates whether or not it's a read or a
-write. The VEX encoders use even 8 bit even addressees which are
-merely the post shifted version of the 7 bit address. Throughout this
-library, the addresses are 7-bit and left-shifted as needed.
+Standard I2C addresses are 7-bit addresses that get bit-shifted to the
+left by one. The eighth bit is then used to indicate whether or not to
+read or write. On the other hand, The VEX encoders use even 8-bit
+addressees. These addresses are identical to the 7-bit addresses after
+shifting to the left by one. Throughout this library, the addresses
+used are standard 7-bit and they are left-shifted when needed for
+compatibility with the encoders.
 
 ** Registers
-You can the registers defined in the spec[1] to read position and
-direction. Other registers are used to write configuration data.
+You can use the registers defined in the spec[1] to read position and
+speed of the encoder. Other registers are used to write configuration
+data such as changing the address, changing the termination state or
+re-zeroing the encoder.
 
 *** Reading Registers
-Using the wire library to read =N= bytes from a register =reg= on a
+Using the Wire library to read =N= bytes from a register =reg= on a
 device with address =addr= is as simple as:
 
 #+BEGIN_SRC c++
@@ -99,7 +112,7 @@ device with address =addr= is as simple as:
 #+END_SRC
 
 *** Writing Registers
-Using the wire library to write byte =b= to a register =reg= on a
+Using the Wire library to write byte =b= to a register =reg= on a
 device with address =addr= is as simple as:
 
 #+BEGIN_SRC c++
@@ -113,25 +126,27 @@ device with address =addr= is as simple as:
 By default, the encoder is terminated. That means that it won't pass
 messages along to any I2C devices plugged into it. This is important
 during initialization where multiple encoders would have the same
-address. However in order to talk to the I2C device(s) plugged into
-this one, you must write to the disable terminator register.
+address. However, in order to talk to the other I2C device(s) plugged
+into this one, you must write to the disable terminator register in
+order to pass messages along.
 
 ** Initialization
-When the encoder receives power it starts up. It loses it's address,
-position and other data once it is powered down. When it comes back
-on, it is set to a default address. To initialize the device, it must
-be assigned a new address. Once it has an address it is initialized
-and you can read it's speed/position and change other configuration
-options. The most important configuration to make sure you change is
-the disable the termination of the encoder if there are any other I2C
-devices after the encoder that you want to talk to. If the next device
-is an encoder, you just repeat this process to initialize it. As a
+When the encoder receives power it starts up. It does not retain it's
+previous address, position or most other data from before it was
+powered down. When it comes back on, it is set to a default
+address. To initialize the device, it must be assigned a new
+address. Once it has been assigned an address it is said to be
+initialized. From this point, you can read it's speed, position and
+change other configuration options. The most important configuration
+to make sure you change when necessary is to disable the termination
+of the encoder if there are any other I2C devices after the encoder.
+Otherwise, you can't communicate with them. If the next device is an
+encoder, you just repeat this process to initialize it too. As a
 result of this initialization process, the order you plug encoders
-into each other is important. The encoder plugged into the Arduino is
-the first one, followed by the one plugged into that one and so forth.
+into each other is very important.
 
 * Resources
-[1] [[http://www.vexforum.com/showthread.php?p=255691][Spec]]
-[2] [[http://www.vexforum.com/wiki/index.php/Intergrated_Motor_Encoders][Wiki]]
-[3] [[http://www.vexforum.com/showthread.php?p=281977][VexForum Post]]
-[4] [[http://www.arduino.cc/en/Reference/Wire][Wire Library]]
+- [1] [[http://www.vexforum.com/showthread.php?p=255691][Spec]]
+- [2] [[http://www.vexforum.com/wiki/index.php/Intergrated_Motor_Encoders][Wiki]]
+- [3] [[http://www.vexforum.com/showthread.php?p=281977][VexForum Post]]
+- [4] [[http://www.arduino.cc/en/Reference/Wire][Wire Library]]
