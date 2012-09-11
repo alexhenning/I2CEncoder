@@ -2,14 +2,35 @@
 * Introduction
 This library uses the Wire library for I2C to talk to the Vex
 Integrated encoders. It currently assumes that you are using a 269
-motor, 
+motor, though further support is coming soon.
 
-* How to use it
+* How to Use
+** Installation
+Download this code and copy the I2CEncoder to your Arduino libraries
+directory. This location depends on where you installed the Arduino
+software. For more instructions, check out the [[http://arduino.cc/en/Hacking/Libraries][Arduino Website]].
+
+** Wiring
+The wire for the encoder is setup as follows:
+| Lines        | GND   | V   | SCL        | SDA        |
+|--------------+-------+-----+------------+------------|
+| Wire         | Black | Red |            |            |
+| Arduino Uno  | GND   | V   | Analog 5   | Analog 4   |
+| Arduino Mega | GND   | V   | Digital 21 | Digital 20 |
+  
+** Includes
+In order to use this library, you must include both the Wire
+Library[4] and this library (I2CEncoder).
+#+BEGIN_SRC c++
+  #include <Wire.h>
+  #include <I2CEncoder.h>
+#+END_SRC
+
 ** Initializing
 The order you initialize encoders is very important! First, the wire
 library must be started by calling =Wire.begin()=, then you must call
 the =init()= method *in the order they are chained together.* The one
-plugged into the arduino first, then the one plugged into that and so
+plugged into the Arduino first, then the one plugged into that and so
 on until the last one.
 #+BEGIN_SRC c++
   I2CEncoder encoder;
@@ -46,10 +67,71 @@ Sets the position to 0 on this encoder.
   encoder.zero();
 #+END_SRC
 
-* How it works
+* How the VEX Encoders Work
+This section describes how VEX Encoder I2C protocol works with respect
+to Arduino, not how I2C works. If you want to know how I2C itself
+works, there are plenty of other good guides. The code uses the Wire
+library[4] that comes with Arduino to implement I2C.
+
+** Addresses
+Standard I2C libraries are 7 bit addresses that get bit-shifted to the
+left. The eighth bit then indicates whether or not it's a read or a
+write. The VEX encoders use even 8 bit even addressees which are
+merely the post shifted version of the 7 bit address. Throughout this
+library, the addresses are 7-bit and left-shifted as needed.
+
+** Registers
+You can the registers defined in the spec[1] to read position and
+direction. Other registers are used to write configuration data.
+
+*** Reading Registers
+Using the wire library to read =N= bytes from a register =reg= on a
+device with address =addr= is as simple as:
+
+#+BEGIN_SRC c++
+  Wire.beginTransmission(addr);
+  Wire.write(reg);
+  Wire.endTransmission();
+  Wire.requestFrom(address, N);
+  while (Wire.available()) {
+    Wire.read(); // Do something with each byte.
+  }
+#+END_SRC
+
+*** Writing Registers
+Using the wire library to write byte =b= to a register =reg= on a
+device with address =addr= is as simple as:
+
+#+BEGIN_SRC c++
+  Wire.beginTransmission(addr);
+  Wire.write(reg);
+  Wire.write(b);
+  Wire.endTransmission();
+#+END_SRC
+
+** Termination
+By default, the encoder is terminated. That means that it won't pass
+messages along to any I2C devices plugged into it. This is important
+during initialization where multiple encoders would have the same
+address. However in order to talk to the I2C device(s) plugged into
+this one, you must write to the disable terminator register.
+
+** Initialization
+When the encoder receives power it starts up. It loses it's address,
+position and other data once it is powered down. When it comes back
+on, it is set to a default address. To initialize the device, it must
+be assigned a new address. Once it has an address it is initialized
+and you can read it's speed/position and change other configuration
+options. The most important configuration to make sure you change is
+the disable the termination of the encoder if there are any other I2C
+devices after the encoder that you want to talk to. If the next device
+is an encoder, you just repeat this process to initialize it. As a
+result of this initialization process, the order you plug encoders
+into each other is important. The encoder plugged into the Arduino is
+the first one, followed by the one plugged into that one and so forth.
 
 * Resources
-- [[http://www.vexforum.com/showthread.php?p=255691][Spec]]
-- [[http://www.vexforum.com/wiki/index.php/Intergrated_Motor_Encoders][Wiki]]
-- [[http://www.vexforum.com/showthread.php?p=281977][VexForum Post]]
-- [[http://www.arduino.cc/en/Reference/Wire][Wire Library]]
+[1] [[http://www.vexforum.com/showthread.php?p=255691][Spec]]
+[2] [[http://www.vexforum.com/wiki/index.php/Intergrated_Motor_Encoders][Wiki]]
+[3] [[http://www.vexforum.com/showthread.php?p=281977][VexForum Post]]
+[4] [[http://www.arduino.cc/en/Reference/Wire][Wire Library]]
