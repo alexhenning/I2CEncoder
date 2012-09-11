@@ -29,6 +29,7 @@ class I2CEncoder
   static unsigned char nextAddress;
   static I2CEncoder* lastEncoder;
   bool is_reversed;
+  float conversion_factor;
   unsigned char address;
   void accessRegister(unsigned char reg);
  public:

@@ -16,6 +16,7 @@ I2CEncoder::I2CEncoder() {
   address = nextAddress;
   nextAddress++;
   is_reversed = false;
+  conversion_factor = 1;
 }
 
 // PUBLIC METHODS
@@ -69,7 +70,7 @@ double I2CEncoder::getSpeed() {
   // TODO: Check sanity of the values
   double vb = double(getVelocityBits());
   double st = vb * 0.000064; // Seconds/Rev
-  double speed = (60.0/st)/30.056; // RPM
+  double speed = conversion_factor * (60.0/st)/30.056; // RPM
   return speed < 0.49 ? 0 : speed;
 }
 
