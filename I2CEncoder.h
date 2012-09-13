@@ -34,12 +34,12 @@
 //// 393 Motor configured for torque:
 // Encoder Revolutions to Output Rotations
 // 1 (Output Rotation) / 39.2 (Encoder Revolution)
-#define MOTOR_393_TORQUE_ROTATIONS
+#define MOTOR_393_TORQUE_ROTATIONS 0.02551020408	
 
 // 393 Motor configured for speed: Ticks to Rotations
 // Encoder Revolutions to Output Rotations
 // 1 (Output Rotation) / 24.5 (Encoder Revolution)
-#define MOTOR_393_SPEED_ROTATIONS
+#define MOTOR_393_SPEED_ROTATIONS 0.04081632653
 
 // Time-delta to Minutes
 // 128 microseconds (per revolution)
