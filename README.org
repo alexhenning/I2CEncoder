@@ -1,10 +1,11 @@
 
 * Introduction
 This library uses the Wire library for I2C to talk to the Vex
-Integrated encoders. It provides a very simple interface to get the
-speed and position of the encoder. It currently assumes that you are
-using a 269 motor. However, I'm hoping to add further flexibility
-soon.
+Integrated encoders. It provides a fairly simple interface to get the
+speed and position of the encoder. You can get this in terms of the
+encoder, the motor output shaft or even the output of your
+transmission. It allows you to use either the 269 or the 393
+integrated motor encoders.
 
 * How to Use
 ** Installation
@@ -19,7 +20,7 @@ Clock and Data lines.
 
 |              | GND   | V   | SCL        | SDA        |
 |--------------+-------+-----+------------+------------|
-| Wire         | Black | Red |            |            |
+| Wire         | Black | Red | Yellow     | White      |
 | Arduino Uno  | GND   | V   | Analog 5   | Analog 4   |
 | Arduino Mega | GND   | V   | Digital 21 | Digital 20 |
   
@@ -36,32 +37,57 @@ The order in which you initialize the encoders is very important!
 First, the wire library must be started by calling =Wire.begin()=,
 then you must call the =init()= of each encoder method *in the order
 that they are chained together.* The one plugged into the Arduino
-first, then the one plugged into that and so on until the last encoder.
+first, then the one plugged into that and so on until the last encoder. 
+
+The first argument of the =init()= method is should convert encoder
+revolutions to output rotations. Three of these are defined by
+default:
+- MOTOR_269_ROTATIONS :: The 269 motor and it's matching encoder.
+- MOTOR_393_SPEED_ROTATIONS :: The 393 motor and it's matching encoder
+     when geared for speed.
+- MOTOR_393_TORQUE_ROTATIONS :: The 393 motor and it's matching encoder
+     when geared for torque.
+These can be augmented to take into account your gear ratio by
+multiplying by a conversion factor. This will affect both what value
+you the speed gives you and your position. For example, if your wheel
+spun once every 3 time your 269s out It also supports dealing with
+automatically dealing with conversion put shaft did, you could use
+=(1.0/3.0)*MOTOR_269_ROTATIONS= and your speed would be measured in
+rpm of the wheel, while position would in rotations of the
+wheel. Alternatively, if you want your measurements in terms of feet
+moved and the circumference of you wheel is 1/2 foot, you can use
+=(1.0/2.0)*(1.0/3.0)*MOTOR_269_ROTATIONS= and now your position is
+measured in feet and your speed is in feet-per-minute.
+
+The second argument is a conversion factor for the time-delta of the
+encoder. These are separate for the 269 encoders and 393
+encoders. Simply select =MOTOR_269_TIME_DELTA= or
+=MOTOR_393_TIME_DELTA= depending on your motor choice.
+
 #+BEGIN_SRC c++
   I2CEncoder encoder;
   Wire.begin();
-  encoder1.init();
-#+END_SRC
-
-** Getting Direction
-*Warning:* Currently unreliable. Still a work in progress. Use with
-extreme caution.
-#+BEGIN_SRC c++
-  encoder.getDirection();
+  encoder1.init(MOTOR_269_ROTATIONS, MOTOR_269_TIME_DELTA);
 #+END_SRC
 
 ** Getting Speed
-Returns the unsigned RPM of the output shaft of the motor. Assumes
-default gearing. Unfortunately, due to the implementation of the
-encoders it takes 4 seconds to get 0 when stopped. The speed gradually
-gets closer and closer to 0 over the course of those 4 seconds.
+Returns the revolutions of the encoder shaft multiplied by the
+conversion factor. If your using one of the default conversion
+factors, it will be the RPM of the output shaft of the
+motor. Unfortunately, due to the implementation of the encoders it
+takes 4 seconds to get 0 when stopped. The speed gradually gets closer
+and closer to 0 over the course of those 4 seconds, but you should not
+rely on this to detect instantaneous stopping.
 #+BEGIN_SRC c++
   encoder.getSpeed();
 #+END_SRC
 
 ** Getting Position
-Returns the signed position as a long. It currently only uses 4 of the
-6 bytes of accuracy and returns the ticks since power on or 0.
+Returns the position of the encoder in ticks multiplied by the
+conversion factor. If your using one of the default conversion
+factors, it will be the number of rotations of the output shaft of the
+motor. It currently only uses 4 of the 6 bytes of accuracy, which
+should be more than sufficient for short lived applications.
 #+BEGIN_SRC c++
   encoder.getPosition()
 #+END_SRC
@@ -71,6 +97,21 @@ Sets the position to 0 on this encoder.
 #+BEGIN_SRC c++
   encoder.zero();
 #+END_SRC
+
+** Other Useful Functions
+- =void setReversed(bool is_reversed)= :: Sets whether or not to
+     reverse the position of this encoder.
+- =unsigned int getVelocityBits()= :: Get the raw velocity bits from
+     the encoder. These represent the time-delta in between
+     revolutions of the encoder.
+- =long getRawPosition()= :: This returns the position of the encoder
+     in terms of ticks.
+- =void unTerminate()= :: Tells the encoder to pass I2C messages along
+     to any device down the line from it.
+- =void terminate()= :: Tells the encoder to stop passing I2C messages
+     along to any device down the line from it.
+- =unsigned char getAddress()= :: Returns the 7-bit I2C address of
+     this encoder for sending your own messages.
 
 * How the VEX Encoders Work
 This section describes how VEX Encoder I2C protocol works with respect
