@@ -1,0 +1,36 @@
+#######################################
+# Syntax Coloring Map For I2CEncoder
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+I2CEncoder	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+init	KEYWORD2
+setReversed	KEYWORD2
+getSpeed	KEYWORD2
+getVelocityBits	KEYWORD2
+getPosition	KEYWORD2
+getRawPosition	KEYWORD2
+zero	KEYWORD2
+unTerminate	KEYWORD2
+terminate	KEYWORD2
+getAddress	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+MOTOR_269_ROTATIONS	LITERAL1
+MOTOR_269_TIME_DELTA	LITERAL1
+MOTOR_393_TORQUE_ROTATIONS	LITERAL1
+MOTOR_393_SPEED_ROTATIONS	LITERAL1
+MOTOR_393_TIME_DELTA		LITERAL1
