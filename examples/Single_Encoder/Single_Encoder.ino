@@ -1,8 +1,8 @@
 /**
- *
+ * A simple example that sets up a single encoder on a 269 motor. It
+ * then uses it to measure the speed and position of the encoder.
  */
 
-#include <Servo.h>
 #include <Wire.h>
 #include <I2CEncoder.h>
 
