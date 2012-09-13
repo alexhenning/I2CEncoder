@@ -16,7 +16,9 @@ I2CEncoder::I2CEncoder() {
   address = nextAddress;
   nextAddress++;
   is_reversed = false;
-  conversion_factor = 1;
+  rotation_factor = 0;
+  time_delta = 0;
+  ticks = 0;
 }
 
 // PUBLIC METHODS
@@ -24,12 +26,16 @@ I2CEncoder::I2CEncoder() {
 /*
  * Initialize the encoder to it's address.
  */
-void I2CEncoder::init() {
+void I2CEncoder::init(double rotation_factor, double time_delta, int ticks) {
   // Unterminates previous encoder so that messages flow to this one.
   if (lastEncoder) {
     lastEncoder->unTerminate();
   }
   lastEncoder = this;
+  
+  this->rotation_factor = rotation_factor;
+  this->time_delta = time_delta;
+  this->ticks = ticks;
 
   // Assign it's address
   Wire.beginTransmission(I2CENCODER_DEFAULT_ADDRESS);
@@ -39,6 +45,9 @@ void I2CEncoder::init() {
 
   // Zero it on initialization
   zero();
+}
+void I2CEncoder::init(double rotation_factor, double time_delta) {
+  init(rotation_factor, time_delta, TICKS);
 }
 
 /**
@@ -68,10 +77,9 @@ bool I2CEncoder::getDirection() {
  */
 double I2CEncoder::getSpeed() {
   // TODO: Check sanity of the values
-  double vb = double(getVelocityBits());
-  double st = vb * 0.000064; // Seconds/Rev
-  double speed = conversion_factor * (60.0/st)/30.056; // RPM
-  return speed < 0.49 ? 0 : speed;
+  unsigned int vb = getVelocityBits();
+  if (vb == 0xFFFF) return 0;
+  return rotation_factor / (double(vb) * time_delta);
 }
 
 /**
@@ -89,10 +97,18 @@ unsigned int I2CEncoder::getVelocityBits() {
   return speed;
 }
 
+
+/**
+ * Returns the position in rotations since power on or last reset.
+ */
+double I2CEncoder::getPosition() {
+  return rotation_factor / ((double) ticks) * ((double) getRawPosition());
+}
+
 /**
  * Returns the position in encoder ticks since power on or last reset.
  */
-long I2CEncoder::getPosition() {
+long I2CEncoder::getRawPosition() {
   // TODO: Deal with the two extra bytes
   accessRegister(I2CENCODER_POSITION_REGISTER);
   Wire.requestFrom(address, 4);
