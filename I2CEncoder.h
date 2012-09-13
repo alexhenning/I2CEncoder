@@ -68,7 +68,6 @@ class I2CEncoder
   void init(double rotation_factor, double time_delta);
   void init(double rotation_factor, double time_delta, int ticks);
   void setReversed(bool is_reversed);
-  bool getDirection();
   double getSpeed();
   unsigned int getVelocityBits();
   double getPosition();
