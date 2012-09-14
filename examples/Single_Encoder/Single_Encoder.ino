@@ -18,7 +18,7 @@ void setup() {
 }
 
 void loop() {
-  Serial.print(encoder1.getSpeed()); // Get how fast it's rotating
+  Serial.print(encoder.getSpeed()); // Get how fast it's rotating
   Serial.print(", ");
-  Serial.println(encoder1.getPosition()); // Get it's current position
+  Serial.println(encoder.getPosition()); // Get it's current position
 }
