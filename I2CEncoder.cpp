@@ -134,7 +134,7 @@ void I2CEncoder::terminate() {
 /**
  * Gets the I2C Address of this encoder for manual access.
  */
-unsigned char I2CEncoder::getAddress() {
+int I2CEncoder::getAddress() {
   return address;
 }
 

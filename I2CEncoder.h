@@ -61,7 +61,7 @@ class I2CEncoder
   float rotation_factor;
   float time_delta;
   int ticks;
-  unsigned char address;
+  int address;
   void accessRegister(unsigned char reg);
  public:
   I2CEncoder();
@@ -75,7 +75,7 @@ class I2CEncoder
   void zero();
   void unTerminate();
   void terminate();
-  unsigned char getAddress();
+  int getAddress();
 };
 #endif
 
