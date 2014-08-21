@@ -41,6 +41,11 @@
 // 1 (Output Rotation) / 24.5 (Encoder Revolution)
 #define MOTOR_393_SPEED_ROTATIONS 0.04081632653
 
+// 393 Motor configured for Turbo speed: Ticks to Rotations
+// Encoder Revolutions to Output Rotations
+// 1 (Output Rotation) / 58.8 (Encoder Revolution)
+#define MOTOR_393_TURBO_ROTATIONS 0.01700680272
+
 // Time-delta to Minutes
 // 128 microseconds (per revolution)
 // 128 microseconds * 1s/10^6microseconds * 1 minute/60s
